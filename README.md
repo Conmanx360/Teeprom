@@ -14,7 +14,7 @@ I borrowed a lot of the outline for this program from the MEEPROMER project for 
 Also included is a python command line client that can be used for both writing/reading the EEPROM. I borrowed the outline from the code here: https://github.com/pda/pda6502/tree/master/tools . On this too, I removed features that weren't necessary for my application, but could easily be restored if you need them. My version of the client works like this:
 There are two main commands: -w for writing, and -d for dumping the EEPROM into a file. Additional arguments are:
 
--f: this is the file argument. For writing, the file to write is here. For dumping, the file named is written to.
+-f: this is the file argument. For writing, the file to write is here. For dumping, the file named here is written to.
 
 -b: this is the bytes argument, which specifies the size of the EEPROM. It is in kbytes, I.E 64 = 64 kbytes, or 512 kbits.
 
