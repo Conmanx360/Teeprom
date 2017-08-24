@@ -6,7 +6,7 @@ The 8 data pins for the EEPROM are configured for pins D0-D7.
 The lower 8 bits of the 16 bit address bus are configured for pins F0-F7.
 The upper 8 bits of the 16 bit address bus are configured for pins C0-C7.
 The CE pin is configured for pin E0, and the OE pin is configured for pin E1.
-The SST27SF512 requires 12v to erase and program, to accomplish this I have attached relays to control pins E6 and E7. E6 sets the OE pin to 12v, and E7 sets the A9 pin to 12v. Before I had the relays, I manually applied the voltage. The relays just make things easier, but are not neccesary.
+The SST27SF512 requires 12v to erase and program, to accomplish this I have attached relays to control pins E6 and E7. E6 sets the OE pin to 12v, and E7 sets the A9 pin to 12v. Before I had the relays, I manually applied the voltage. The relays just make things easier, but are not necessary.
 
 Program info:
 I borrowed a lot of the outline for this program from the MEEPROMER project for the Arduino Uno, which used shift registers to address all the necessary pins. I reconfigured it to use the Teensy 2.0++'s port/pin interface. I removed the ability to write in smaller chunks because the SST27SF512 has to be written all at once. These functions could easily be restored with a look at the MEEPROMER source code featured here: https://github.com/mkeller0815/MEEPROMMER
