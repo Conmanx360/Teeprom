@@ -15,7 +15,7 @@ parser.add_argument('-o', '--offset', action='store', default='0',
 parser.add_argument('-b', '--bytes', action='store', default='64',
         type=int, help='Number of kBytes to r/w, default 64')
 parser.add_argument('-c', '--com', action='store', 
-        default='COM5', help='Com port address')
+        default='COM3', help='Com port address')
 parser.add_argument('-s', '--speed', action='store', 
         type=int, default='115200', help='Com port baud, default 115200')
 parser.add_argument('-f', '--file', action='store',
@@ -26,17 +26,23 @@ def write_file():
    ser.write(bytes("W "+format(args.bytes,'04x')+" "+
        format(args.offset,'04x')+
        "\n", 'ascii'))
+   ser.reset_output_buffer()
    while ser.read(1) != b'-':
-      time.sleep(1)
       print('sleeping...')
+   
+   
    print('begin writing...')
+   ser.write(b'~')
    for i in range(args.bytes-args.offset):   
       output = fi.read(buffersize)	  
       ser.write(output)
    print('Write complete.')
+   fi.close()
    ser.flushInput()
    ser.flushOutput()
-   
+   ser.reset_input_buffer()
+   ser.reset_output_buffer()
+
    
 def dump_file():
    ser.flushInput()
@@ -48,8 +54,13 @@ def dump_file():
    except OSError:
        print("Error: File cannot be opened, verify it is not in use.")
        sys.exit(1)
+   time.sleep(0.1)
    fo.write(eeprom)
    fo.close()
+   ser.flushInput()
+   ser.flushOutput()
+   ser.reset_input_buffer()
+   ser.reset_output_buffer()
    
 args = parser.parse_args()
 

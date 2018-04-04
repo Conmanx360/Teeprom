@@ -46,12 +46,14 @@ byte writebuffer[BUFFERSIZE];
 char cmdbuf[COMMANDSIZE];
 
 uint32_t EEPROMkbytes, EEPROMpadding_readoffset;
+uint8_t finalByte = 0x97;
 
 //define values for COMMANDs. These are used within the parser.
 #define NOCOMMAND   0
 #define READ_HEX    1
 #define WRITE_HEX   2
 #define ERASE       3
+
 
 /*****************************************************************
  *
@@ -189,6 +191,9 @@ void rom_padding(uint32_t address) {
 //This erases the SST27SF512 by setting the OE and A9 pins to 12v, and then
 //toggling the ce pin from high to low.
 void eeprom_erase() {
+     set_oe_low ();
+     set_address_bus(0x0000);
+     delay(500);
      set_oe_vhigh();
      set_a9_vhigh();
      delay(1000);
@@ -209,12 +214,16 @@ void eeprom_erase() {
 void buffered_write(uint32_t datasize, uint32_t offsetvalue) {
   uint32_t i, y, x;
   uint32_t repeatCount = (datasize-offsetvalue);
-  uint32_t currentAddress = (offsetvalue * 1024); // Set the address bus to 32768 after writing the  first half of the EEPROM with padding.   
+  uint32_t currentAddress = 32768; // Set the address bus to 32768 after writing the  first half of the EEPROM with padding.
+  
   Serial.write(45);  // Signal to begin transmission of data from PC. It is a '-' in ascii.
-   
+  while(Serial.read() != 0x7E){
+    
+  }
+  delay(10);       
   for(x = 0; x < repeatCount; x++){ 
      for(y = 0; y < BUFFERSIZE; y++) {
-        if(Serial.available() > 0) {
+        if(Serial.available()) {
            writebuffer[y] = Serial.read();  
         }
      }
@@ -222,8 +231,9 @@ void buffered_write(uint32_t datasize, uint32_t offsetvalue) {
         fast_write((currentAddress+i), writebuffer[i]);  
      }  
   currentAddress += BUFFERSIZE;
-  memset(writebuffer, 0, sizeof(writebuffer)); 
+   
   }
+  
 }      
 
 //This dumps all of the data from your EEPROM to the serial port for reading.
@@ -330,6 +340,19 @@ uint16_t hexWord(char* data) {
     (hexDigit(data[3]))); 
 }
 
+uint8_t reset_pins() {
+  DDRF = 0xFF;
+  DDRC = 0xFF;
+  DDRE = 0xFF;
+  PORTE = 0x00;
+  PORTD = 0x00;
+  DDRD = 0x00;
+  set_address_bus(0);
+  
+  set_oe_normal();
+  set_a9_normal();
+  delay(500);
+}
 /************************************************
  *
  * MAIN
@@ -366,12 +389,11 @@ void loop() {
       data_bus_input();
       PORTD = 0xFF;
       eeprom_dump(EEPROMkbytes, EEPROMpadding_readoffset);
-      setup(); 
+      reset_pins(); 
       break;
-  case WRITE_HEX:
-     {
+  case WRITE_HEX: 
      eeprom_erase(); //The SST27SF512 must be erased before being written.
-     setup();        //may differ depending on EEPROM.     
+     reset_pins();        //may differ depending on EEPROM.     
      set_oe_vhigh();
      delay(2000);
      data_bus_output();
@@ -379,15 +401,16 @@ void loop() {
      set_ce_high();
      set_address_bus(0);
      rom_padding(EEPROMpadding_readoffset);
+     delay(1000);
      buffered_write(EEPROMkbytes, EEPROMpadding_readoffset);
      delay(1000);
      set_oe_normal();
-     setup();
-     }
+     delay(1000);
+     reset_pins();     
      break;
   case ERASE:
      eeprom_erase();
-     setup();   
+     reset_pins();   
      break;
   default:
     break;    
